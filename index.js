@@ -11,7 +11,7 @@ const cwd = process.cwd();
 
 program
     .version('0.0.1', '-v, --version')
-    .description('这是一个测试的cli，旨在快速创建')
+    .description('这是一个测试的cli，旨在快速创建React自用模板')
 
 program
     .option('-r, --remote', '暂时使用 \'new\' 从GITHUB上拉取模板');
@@ -22,7 +22,7 @@ program
     .action((project) => {
         if (project && typeof project === 'string') {
             // way1 to clone
-            const cloneProcess = childProcess.exec(`git clone https://github.com/lbgod2222/born-cli.git .${project}/ --depth=1`)
+            const cloneProcess = childProcess.exec(`git clone https://github.com/lbgod2222/born-cli.git ${project}/ --depth=1`)
 
             cloneProcess.on('exit', async () => {
                 log.info('正在初始化模板...');
