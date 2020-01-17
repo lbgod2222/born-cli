@@ -1,20 +1,20 @@
 #!/usr/bin/env node
 
-const clone = require('git-clone')
-const program = require('commander')
+// const clone = require('git-clone')
+const path = require('path');
+const program = require('commander');
 const childProcess = require('child_process');
-const shell = require('shelljs');
+const fs = require('fs');
+// const shell = require('shelljs');
 const fse = require('fs-extra');
 const log = require('tracer').colorConsole()
+const packageConfig = require('./package.json');
 
 const cwd = process.cwd();
 
 program
-    .version('0.0.1', '-v, --version')
+    .version(packageConfig.version, '-v, --version')
     .description('这是一个测试的cli，旨在快速创建React自用模板')
-
-program
-    .option('-r, --remote', '暂时使用 \'new\' 从GITHUB上拉取模板');
 
 program
     .command('new <project>')
@@ -22,39 +22,43 @@ program
     .action((project) => {
         if (project && typeof project === 'string') {
             // way1 to clone
-            const cloneProcess = childProcess.exec(`git clone https://github.com/lbgod2222/born-cli.git ${project}/init --depth=1`)
+            const cloneProcess = childProcess.exec(`git clone https://github.com/lbgod2222/born-cli.git .${project}/ --depth=1`)
 
             cloneProcess.on('exit', async () => {
                 log.info('正在初始化模板...');
-                await fse.move(shell.pwd() + `/${project}/init/template`, shell.pwd())
-                await fse.remove(shell.pwd() + `/${project}/init`)
-                log.info('项目初始化完成！')
+                await fse.move(path.join(cwd, `./.${project}/template`), path.join(cwd, `./${project}`));
+                await fse.remove(path.join(cwd, `./.${project}`));
+                log.info('项目初始化完成！');
             })
-            // way2 to clone
-            // clone(`https://github.com/lbgod2222/born-cli.git`, `./${project}`, {shallow: true})
-
-
         } else {
-            log.warn('请在new后传入字符串作为项目名称');
+            log.warn('请在new后传入参数字符串作为项目名称');
         }
     })
 
-// program
-//     .command('* <tpl> <project>')
-//     .action(function(tpl, project) {
-//         log.info('目前xserver-cli支持以下模板：')
-//         log.info('使用例子：x-cli x-express myproject')
-//         if (tpl && project) {
-//             let pwd = shell.pwd()
-//             log.info(`正在拉取模板代码，下载位置：${pwd}/${project}/ ...`)
-//             clone(`https://github.com/cheneyweb/${tpl}.git`, pwd + `/${project}`, null, function() {
-//                 shell.rm('-rf', pwd + `/${project}/.git`)
-//                 log.info('模板工程建立完成')
-//             })
-//         } else {
-//             log.error('正确命令例子：x-cli x-express myproject')
-//         }
-//     })
+program
+    .command('inject <Folder>')
+    .description('Inject usual catalog into destination folder')
+    .action((folder) => {
+
+        // 下载模板
+        const cloneProcess = childProcess.exec(`git clone https://github.com/lbgod2222/born-cli.git .${folder}/ --depth=1`)
+
+        cloneProcess.on('exit', async() => {
+            // await fse.move(path.join(cwd, `./.${project}/template`), path.join(cwd, `./${project}`));
+            log.info('正在执行注入...');
+            log.info('正在注入代理文件...');
+            // 判断路径是否存在
+            fs.statSync('./', async (err, stat) => {
+                if (err) {
+                    console.log('已存在目录，行为取消');
+                } else {
+                    await fse.move(path.join(cwd, `./.${folder}/template/inject/setupProxy.js`), path.join(cwd, `./${folder}`))
+                }
+            })
+            log.info('注入代理文件成功...');
+        })
+
+    })
 
 program
     .command('*')
