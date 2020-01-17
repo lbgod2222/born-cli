@@ -44,18 +44,29 @@ program
         const cloneProcess = childProcess.exec(`git clone https://github.com/lbgod2222/born-cli.git .${folder}/ --depth=1`)
 
         cloneProcess.on('exit', async() => {
-            // await fse.move(path.join(cwd, `./.${project}/template`), path.join(cwd, `./${project}`));
             log.info('正在执行注入...');
             log.info('正在注入代理文件...');
             // 判断路径是否存在
-            fs.statSync('./', async (err, stat) => {
+            fs.exists(`./${folder}/setupProxy.js`, async (exist) => {
+                if (exist) {
+                    console.log('已存在目录，行为取消');
+                } else {
+                    await fse.move(path.join(cwd, `./.${folder}/template/inject/setupProxy.js`), path.join(cwd, `./${folder}/setupProxy.js`))
+                }
+            })
+            log.info('正在执行注入...');
+            log.trace('===================');
+            log.info('正在执行redux基础目录注入...');
+            fs.statSync(`./${folder}/store`, async (err, stat) => {
                 if (err) {
                     console.log('已存在目录，行为取消');
                 } else {
-                    await fse.move(path.join(cwd, `./.${folder}/template/inject/setupProxy.js`), path.join(cwd, `./${folder}`))
+                    await fse.move(path.join(cwd, `./.${folder}/template/inject/store`), path.join(cwd, `./${folder}/store`))
                 }
             })
-            log.info('注入代理文件成功...');
+
+            // 删除缓存项目
+            await fse.remove(path.join(cwd, `./.${folder}`));
         })
 
     })
