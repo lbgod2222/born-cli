@@ -22,13 +22,13 @@ program
     .action((project) => {
         if (project && typeof project === 'string') {
             // way1 to clone
-            const cloneProcess = childProcess.exec(`git clone https://github.com/lbgod2222/born-cli.git ${project}/ --depth=1`)
+            const cloneProcess = childProcess.exec(`git clone https://github.com/lbgod2222/born-cli.git ${project}/init --depth=1`)
 
             cloneProcess.on('exit', async () => {
                 log.info('正在初始化模板...');
-                await fse.move(shell.pwd() + '/template', shell.pwd())
-                await fse.remove(shell.pwd() + '/template')
-                log.inf('项目初始化完成！')
+                await fse.move(shell.pwd() + `/${project}/init/template`, shell.pwd())
+                await fse.remove(shell.pwd() + `/${project}/init`)
+                log.info('项目初始化完成！')
             })
             // way2 to clone
             // clone(`https://github.com/lbgod2222/born-cli.git`, `./${project}`, {shallow: true})
