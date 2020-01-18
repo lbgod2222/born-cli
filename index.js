@@ -14,24 +14,24 @@ const cwd = process.cwd();
 
 program
     .version(packageConfig.version, '-v, --version')
-    .description('这是一个测试的cli，旨在快速创建React自用模板')
+    .description('This is a cli-tool for project that made from create-react-app, simply inejct the usual staff include public redux store, proxy set file, ')
 
 program
     .command('new <project>')
-    .description('创建新的React模板')
+    .description('Create new folder scaffold with a given project name -- (Unfinished)')
     .action((project) => {
         if (project && typeof project === 'string') {
             // way1 to clone
             const cloneProcess = childProcess.exec(`git clone https://github.com/lbgod2222/born-cli.git .${project}/ --depth=1`)
 
             cloneProcess.on('exit', async () => {
-                log.info('正在初始化模板...');
+                log.info('Initting template...');
                 await fse.move(path.join(cwd, `./.${project}/template`), path.join(cwd, `./${project}`));
                 await fse.remove(path.join(cwd, `./.${project}`));
-                log.info('项目初始化完成！');
+                log.info('Initted！');
             })
         } else {
-            log.warn('请在new后传入参数字符串作为项目名称');
+            log.warn('Please remeber to pass a parameter after keyword "new"');
         }
     })
 
@@ -44,26 +44,23 @@ program
         const cloneProcess = childProcess.exec(`git clone https://github.com/lbgod2222/born-cli.git .${folder}/ --depth=1`)
 
         cloneProcess.on('exit', async() => {
-            log.info('正在执行注入...');
-            log.info('正在注入代理文件...');
+            log.info('Injecting...');
+            log.info('Injecting proxy file...');
             // 判断路径是否存在
-            fs.exists(`./${folder}/setupProxy.js`, async (exist) => {
-                if (exist) {
-                    console.log('已存在目录，行为取消');
-                } else {
-                    await fse.move(path.join(cwd, `./.${folder}/template/inject/setupProxy.js`), path.join(cwd, `./${folder}/setupProxy.js`))
-                }
-            })
-            log.info('正在执行注入...');
+            try {
+                fse.statSync(`./${folder}/setupProxy.js`)
+                log.warn('File existed, action canceled');
+            } catch (error) {
+                await fse.move(path.join(cwd, `./.${folder}/template/inject/setupProxy.js`), path.join(cwd, `./${folder}/setupProxy.js`))
+            }
             log.trace('===================');
-            log.info('正在执行redux基础目录注入...');
-            fs.statSync(`./${folder}/store`, async (err, stat) => {
-                if (err) {
-                    console.log('已存在目录，行为取消');
-                } else {
-                    await fse.move(path.join(cwd, `./.${folder}/template/inject/store`), path.join(cwd, `./${folder}/store`))
-                }
-            })
+            log.info('Injecting redux related files...');
+            try {
+                fse.statSync(`./${folder}/store`)
+                log.warn('Directory existed, action canceled!');
+            } catch (error) {
+                await fse.move(path.join(cwd, `./.${folder}/template/inject/store`), path.join(cwd, `./${folder}/store`))
+            }
 
             // 删除缓存项目
             await fse.remove(path.join(cwd, `./.${folder}`));
